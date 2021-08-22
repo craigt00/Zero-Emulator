@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.IO;
 using Peripherals;
 
 namespace Speccy
@@ -385,6 +386,8 @@ namespace Speccy
         public bool isROMprotected = true;  //not really used ATM
         public bool needsPaint = false;     //Raised when the ULA has finished painting the entire screen
         protected bool CapsLockOn = false;
+
+        private bool logging = false;
 
         //Sound
         public const short MIN_SOUND_VOL = 0;
@@ -2780,11 +2783,13 @@ namespace Speccy
                 } 
             }
             //Inlined version of FetchInstruction()
+            Log();
+
             R++;
 
             if (isRecordingRZX)
                 rzx.fetchCount++;
-           
+
             oldTStates = totalTStates;
             opcode = GetOpcode(PC);
 
@@ -2917,6 +2922,20 @@ namespace Speccy
 
                     Interrupt();
                 }
+            }
+        }
+
+        private void Log()
+        {
+            if (logging)
+            {
+                int addr = PC & 0xffff;
+                int page = (addr) >> 13;
+                int offset = (addr) & 0x1FFF;
+                byte _b = PageReadPointer[page][offset];
+
+                //File.AppendAllText("C:\\Logs\\zero.log", $"{PC.ToString("X4")} {_b.ToString("X2")} AF-{AF.ToString("X4")} BC-{BC.ToString("X4")} DE-{DE.ToString("X4")} HL-{HL.ToString("X4")} SP-{SP.ToString("X4")} IX-{IX.ToString("X4")} IY-{IY.ToString("X4")} IR-{IR.ToString("X4")} T-{totalTStates.ToString()}{Environment.NewLine}");
+                File.AppendAllText("C:\\Logs\\zero.log", $"{PC.ToString("X4")} {_b.ToString("X2")} AF-{AF.ToString("X4")} BC-{BC.ToString("X4")} DE-{DE.ToString("X4")} HL-{HL.ToString("X4")} SP-{SP.ToString("X4")} IX-{IX.ToString("X4")} IY-{IY.ToString("X4")}{Environment.NewLine}");
             }
         }
 
@@ -4727,6 +4746,8 @@ namespace Speccy
 
 #region Opcodes with CB prefix
                 case 0xCB:
+                    Log();
+
                     switch (opcode = FetchInstruction()) {
 #region Rotate instructions
                         case 0x00: //RLC B
@@ -6791,6 +6812,8 @@ namespace Speccy
 
 #region All DDCB instructions
                         case 0xCB:
+                            Log();
+
                             disp = GetDisplacement(PeekByte(PC));
                             offset = IX + disp; //The displacement required
                             PC++;
@@ -8104,6 +8127,8 @@ namespace Speccy
 
 #region Opcodes with ED prefix
                 case 0xED:
+                    Log();
+
                     opcode = FetchInstruction();
                     if (opcode < 0x40) {
                         break;
@@ -8892,6 +8917,8 @@ namespace Speccy
 
 #region Opcodes with FD prefix (includes FDCB)
                 case 0xFD:
+                    Log();
+
                     switch (opcode = FetchInstruction()) {
 #region Addition instructions
                         case 0x09:  //ADD IY, BC
@@ -9574,6 +9601,8 @@ namespace Speccy
 
 #region All FDCB instructions
                         case 0xCB:
+                            Log();
+
                             disp = GetDisplacement(PeekByte(PC));
                             offset = IY + disp; //The displacement required
                             PC++;
