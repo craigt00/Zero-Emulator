@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
+using SpeccyCommon;
 
 namespace ZeroWin
 {
@@ -71,6 +69,11 @@ namespace ZeroWin
             dataGridView1.Columns.Add(dgrid3ColData);
 
             dataGridView1.DataSource = monitor.watchVariableList;
+            //monitor.ziggyWin.zx.MemoryWriteEvent += new MemoryWriteEventHandler(Monitor_MemoryWrite);
+        }
+
+        private void Monitor_MemoryWrite(object sender, MemoryEventArgs e) {
+            throw new NotImplementedException();
         }
 
         public void RefreshData(bool isHex)
@@ -101,13 +104,14 @@ namespace ZeroWin
                 return;
             }
 
-            foreach (Monitor.WatchVariable wv in monitor.watchVariableList)
-            {
-                if(wv.Address == addr)
-                    return;
+            if (addr >= 0) {
+                foreach (Monitor.WatchVariable wv in monitor.watchVariableList) {
+                    if (wv.Address == addr)
+                        return;
+                }
+                monitor.AddWatchVariable(addr, textBox1.Text);
+                dataGridView1.Refresh();
             }
-            monitor.AddWatchVariable(addr, textBox1.Text);
-            dataGridView1.Refresh();
         }
 
         private void button3_Click(object sender, EventArgs e)
